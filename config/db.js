@@ -1,15 +1,16 @@
+// src/database.js
 const mongoose = require('mongoose');
 
-// Responsável por abrir a conexão com o MongoDB usando Mongoose.
-// É chamada uma única vez, na inicialização do servidor (server.js).
-const conectarBancoDeDados = async () => {
+async function connectDB() {
   try {
-    const conexao = await mongoose.connect(process.env.MONGO_URI);
-    console.log(`MongoDB conectado: ${conexao.connection.host}`);
-  } catch (erro) {
-    console.error(`Erro ao conectar ao MongoDB: ${erro.message}`);
-    process.exit(1); // encerra o processo se não conseguir conectar ao banco
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('Conectado ao MongoDB!');
+  } catch (err) {
+    console.error('Erro ao conectar ao MongoDB:', err.message);
+    // se quiser ver o erro completo, com todos os detalhes:
+    // const util = require('util');
+    // console.error(util.inspect(err, { depth: null }));
   }
-};
+}
 
-module.exports = conectarBancoDeDados;
+module.exports = connectDB;

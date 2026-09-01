@@ -33,4 +33,17 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { login };
+// GET /api/auth/me
+// Retorna os dados do administrador dono do token enviado no header Authorization.
+// Serve para confirmar, na hora de testar, que o token realmente corresponde
+// ao administrador esperado (o authMiddleware já validou o token antes de chegar aqui).
+const meuPerfil = async (req, res) => {
+  res.json({
+    id: req.administrador._id,
+    nome: req.administrador.nome,
+    email: req.administrador.email,
+    status: req.administrador.status,
+  });
+};
+
+module.exports = { login, meuPerfil };
