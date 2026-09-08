@@ -63,7 +63,6 @@ const resolvers = {
 },
 
   Mutation: {
-    // contexto.administrador vem do server.js, extraído do token JWT
     registrarVenda: async (_, { itens }, contexto) => {
       if (!contexto.administrador) {
         throw new Error('Não autorizado. Faça login para registrar uma venda.');
@@ -86,7 +85,7 @@ const resolvers = {
         codigo: dados.codigo,
         nome: dados.nome,
         descricao: dados.descricao,
-        categoria: dados.categoriaId,
+        categoria: dados.categoria,
         preco: dados.preco,
         quantidadeEstoque: dados.quantidadeEstoque ?? 0,
         estoqueMinimo: dados.estoqueMinimo ?? 5,
