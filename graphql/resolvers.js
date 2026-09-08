@@ -2,6 +2,8 @@ const Produto = require('../models/Produto');
 const Categoria = require('../models/Categoria');
 const Venda = require('../models/Venda');
 const vendaService = require('../services/vendaService');
+const Administrador = require('../models/Administrador');
+const gerarToken = require('../utils/gerarToken');
 
 const resolvers = {
  Query: {
@@ -75,7 +77,6 @@ const resolvers = {
     return vendaService.registrarVenda(itensFormatados, contexto.administrador._id);
     },
 
-    // Cadastra um produto via GraphQL (mesma regra do REST: exige login)
     criarProduto: async (_, { dados }, contexto) => {
       if (!contexto.administrador) {
         throw new Error('Não autorizado. Faça login para cadastrar um produto.');
@@ -95,8 +96,6 @@ const resolvers = {
       return produto.populate('categoria');
     },
 
-    // Login via GraphQL: mesma regra do REST (POST /api/auth/login),
-    // não exige contexto.administrador (é assim que o token é obtido).
     login: async (_, { email, senha }) => {
       const administrador = await Administrador.findOne({ email });
 
@@ -120,7 +119,7 @@ const resolvers = {
   },  
 
 
-  // Resolvers de campo: convertem _id (ObjectId) em id (String) exigido pelo schema
+
   Produto: {
     id: (produto) => produto._id.toString(),
   },
