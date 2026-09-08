@@ -94,6 +94,16 @@ const resolvers = {
 
       return produto.populate('categoria');
     },
+    criarCategoria: async (_, { dados }, contexto) => {
+      if (!contexto.administrador) {
+        throw new Error('Não autorizado. Faça login para cadastrar uma categoria.');
+      }
+
+      return Categoria.create({
+        nome: dados.nome,
+        descricao: dados.descricao,
+      });
+    },
 
     login: async (_, { email, senha }) => {
       const administrador = await Administrador.findOne({ email });

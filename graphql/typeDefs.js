@@ -48,6 +48,11 @@ const typeDefs = `#graphql
   estoqueMinimo: Int
   imagem: String
   }
+  input CategoriaInput {
+    nome: String!
+    descricao: String
+  }
+
 
   type AuthPayload{
   token: String!
@@ -68,6 +73,7 @@ const typeDefs = `#graphql
   type Mutation {
     registrarVenda(itens: [ItemVendaInput!]!): Venda!
     criarProduto(dados: ProdutoInput!): Produto!
+    criarCategoria(dados: CategoriaInput!): Categoria!
     login(email: String!, senha: String!): AuthPayload!
   }
 `;

@@ -1,0 +1,232 @@
+{
+  "info": {
+    "_postman_id": "c699067c-88a9-40fa-8efc-e78952f6e686",
+    "name": "Bebida Express GraphQl",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "39859650"
+  },
+  "item": [
+    {
+      "name": "LISTAR PRODUTOS",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query {\r\n  produtos {\r\n    id\r\n    nome\r\n    preco\r\n    quantidadeEstoque\r\n    estoqueMinimo\r\n    statusEstoque\r\n    categoria {\r\n      nome\r\n    }\r\n  }\r\n}"
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/graphql",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "graphql"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PROCURAR PELO ID",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query BuscarProduto($id: ID!) {\r\n  produto(id: $id) {\r\n    id\r\n    nome\r\n    preco\r\n    quantidadeEstoque\r\n  }\r\n}",
+            "variables": "{\r\n    \"id\": \"6a95f11e9320349c05ab4099\"\r\n}"
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/graphql",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "graphql"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PROCURAR CATEGORIAS",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query {\r\n  categorias {\r\n    id\r\n    nome\r\n    status\r\n  }\r\n}"
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/graphql",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "graphql"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "LISTAR VENDAS",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query {\r\n  vendas {\r\n    id\r\n    data\r\n    valorTotal\r\n  }\r\n}",
+            "variables": ""
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/graphql",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "graphql"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "REGISTRAR VENDAS",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation RegistrarVenda($itens: [ItemVendaInput!]!) {\r\n  registrarVenda(itens: $itens) {\r\n    id\r\n    valorTotal\r\n  }\r\n}",
+            "variables": "{\r\n  \"itens\": [\r\n    { \"produtoId\": \"6a95f11e9320349c05ab4099\", \"quantidade\": 1 }\r\n  ]\r\n}"
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/graphql",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "graphql"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "LOGIN ADMIN",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation Login($email: String!, $senha: String!) {\r\n  login(email: $email, senha: $senha) {\r\n    id\r\n    nome\r\n    email\r\n    token\r\n  }\r\n}",
+            "variables": "{\r\n  \"email\": \"admin@bebidaexpress.com\",\r\n  \"senha\": \"admin123\"\r\n}"
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/graphql",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "graphql"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CADASTRAR PRODUTOS",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation CriarProduto($dados: ProdutoInput!) {\r\n  criarProduto(dados: $dados) {\r\n    id\r\n    codigo\r\n    nome\r\n    preco\r\n    quantidadeEstoque\r\n    estoqueMinimo\r\n    categoria {\r\n      nome\r\n    }\r\n  }\r\n}",
+            "variables": "{\r\n  \"dados\": {\r\n    \"codigo\": \"BEV006\",\r\n    \"nome\": \"Fanta Laranja\",\r\n    \"categoria\": \"6a95ed9b9320349c05ab4090\",\r\n    \"preco\": 8,\r\n    \"quantidadeEstoque\": 15,\r\n    \"estoqueMinimo\": 5\r\n  }\r\n}"
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/graphql",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "graphql"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CADASTRAR CATEGORIAS",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation CriarCategoria($dados: CategoriaInput!) {\r\n  criarCategoria(dados: $dados) {\r\n    id\r\n    nome\r\n    descricao\r\n    status\r\n  }\r\n}",
+            "variables": "{\r\n  \"dados\": {\r\n    \"nome\": \"Cervejas\",\r\n    \"descricao\": \"Cervejas com Alcool e sem Alcool\"\r\n  }\r\n}"
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/graphql",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "graphql"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{supabase_service_role_api_key_014v}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "supabase_service_role_api_key_014v",
+      "secret": true
+    }
+  ]
+}
