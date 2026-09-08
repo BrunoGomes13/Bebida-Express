@@ -72,9 +72,53 @@ const resolvers = {
         quantidade: item.quantidade,
       }));
 
-      return vendaService.registrarVenda(itensFormatados, contexto.administrador._id);
+    return vendaService.registrarVenda(itensFormatados, contexto.administrador._id);
     },
-  },
+
+    // Cadastra um produto via GraphQL (mesma regra do REST: exige login)
+    criarProduto: async (_, { dados }, contexto) => {
+      if (!contexto.administrador) {
+        throw new Error('Não autorizado. Faça login para cadastrar um produto.');
+      }
+
+      const produto = await Produto.create({
+        codigo: dados.codigo,
+        nome: dados.nome,
+        descricao: dados.descricao,
+        categoria: dados.categoriaId,
+        preco: dados.preco,
+        quantidadeEstoque: dados.quantidadeEstoque ?? 0,
+        estoqueMinimo: dados.estoqueMinimo ?? 5,
+        imagem: dados.imagem ?? '',
+      });
+
+      return produto.populate('categoria');
+    },
+
+    // Login via GraphQL: mesma regra do REST (POST /api/auth/login),
+    // não exige contexto.administrador (é assim que o token é obtido).
+    login: async (_, { email, senha }) => {
+      const administrador = await Administrador.findOne({ email });
+
+      if (!administrador || administrador.status !== 'ativo') {
+        throw new Error('Credenciais inválidas.');
+      }
+
+      const senhaCorreta = await administrador.compararSenha(senha);
+
+      if (!senhaCorreta) {
+        throw new Error('Credenciais inválidas.');
+      }
+
+      return {
+        id: administrador._id.toString(),
+        nome: administrador.nome,
+        email: administrador.email,
+        token: gerarToken(administrador._id),
+      };
+    },
+  },  
+
 
   // Resolvers de campo: convertem _id (ObjectId) em id (String) exigido pelo schema
   Produto: {

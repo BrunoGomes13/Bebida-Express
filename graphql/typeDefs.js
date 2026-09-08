@@ -38,6 +38,24 @@ const typeDefs = `#graphql
     quantidade: Int!
   }
 
+  input ProdutoInput {
+  codigo: String!
+  nome: String!
+  descricao: String
+  categoria: ID!
+  preco: Float!
+  quantidadeEstoque: Int
+  estoqueMinimo: Int
+  imagem: String
+  }
+
+  type AuthPayload{
+  token: String!
+  id: ID!
+  nome: String!
+  email: String!
+  }
+
   type Query {
     produtos: [Produto!]!
     produto(id: ID!): Produto
@@ -49,6 +67,8 @@ const typeDefs = `#graphql
 
   type Mutation {
     registrarVenda(itens: [ItemVendaInput!]!): Venda!
+    criarProduto(dados: ProdutoInput!): Produto!
+    login(email: String!, senha: String!): AuthPayload!
   }
 `;
 
