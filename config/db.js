@@ -1,5 +1,8 @@
 // src/database.js
+const dns = require('node:dns');
 const mongoose = require('mongoose');
+
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 async function connectDB() {
   try {
@@ -10,6 +13,8 @@ async function connectDB() {
     // se quiser ver o erro completo, com todos os detalhes:
     // const util = require('util');
     // console.error(util.inspect(err, { depth: null }));
+
+    process.exit(1);
   }
 }
 
