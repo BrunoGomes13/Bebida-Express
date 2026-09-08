@@ -4,26 +4,61 @@ const Venda = require('../models/Venda');
 const vendaService = require('../services/vendaService');
 
 const resolvers = {
-  Query: {
-    produtos: async () => Produto.find({ status: 'ativo' }).populate('categoria'),
+ Query: {
+  produtos: async (_, __, contexto) => {
+    if (!contexto.administrador) {
+      throw new Error('Não autorizado. Faça login para consultar.');
+    }
 
-    produto: async (_, { id }) => Produto.findById(id).populate('categoria'),
-
-    categorias: async () => Categoria.find(),
-
-    estoque: async () => {
-      const produtos = await Produto.find({ status: 'ativo' });
-      return produtos.map((produto) => ({
-        produto,
-        quantidade: produto.quantidadeEstoque,
-        status: produto.statusEstoque,
-      }));
-    },
-
-    vendas: async () => Venda.find().sort({ data: -1 }),
-
-    venda: async (_, { id }) => Venda.findById(id),
+    return Produto.find({ status: 'ativo' }).populate('categoria');
   },
+
+  produto: async (_, { id }, contexto) => {
+    if (!contexto.administrador) {
+      throw new Error('Não autorizado. Faça login para consultar.');
+    }
+
+    return Produto.findById(id).populate('categoria');
+  },
+
+  categorias: async (_, __, contexto) => {
+    if (!contexto.administrador) {
+      throw new Error('Não autorizado. Faça login para consultar.');
+    }
+
+    return Categoria.find();
+  },
+
+  estoque: async (_, __, contexto) => {
+    if (!contexto.administrador) {
+      throw new Error('Não autorizado. Faça login para consultar.');
+    }
+
+    const produtos = await Produto.find({ status: 'ativo' });
+
+    return produtos.map((produto) => ({
+      produto,
+      quantidade: produto.quantidadeEstoque,
+      status: produto.statusEstoque,
+    }));
+  },
+
+  vendas: async (_, __, contexto) => {
+    if (!contexto.administrador) {
+      throw new Error('Não autorizado. Faça login para consultar.');
+    }
+
+    return Venda.find().sort({ data: -1 });
+  },
+
+  venda: async (_, { id }, contexto) => {
+    if (!contexto.administrador) {
+      throw new Error('Não autorizado. Faça login para consultar.');
+    }
+
+    return Venda.findById(id);
+  },
+},
 
   Mutation: {
     // contexto.administrador vem do server.js, extraído do token JWT
