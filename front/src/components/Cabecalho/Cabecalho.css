@@ -1,0 +1,28 @@
+.cabecalho-mobile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+@media (min-width: 768px) {
+  .cabecalho-mobile {
+    display: none;
+  }
+}
+
+.cabecalho-mobile__botao {
+  background: none;
+  border: none;
+  color: #334155;
+  display: flex;
+  cursor: pointer;
+}
+
+.cabecalho-mobile__titulo {
+  font-weight: 600;
+  color: var(--cor-texto);
+  margin: 0;
+}

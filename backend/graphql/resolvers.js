@@ -36,7 +36,7 @@ const resolvers = {
       throw new Error('Não autorizado. Faça login para consultar.');
     }
 
-    const produtos = await Produto.find({ status: 'ativo' });
+    const produtos = await Produto.find({ status: 'ativo' }).populate('categoria'); 
 
     return produtos.map((produto) => ({
       produto,

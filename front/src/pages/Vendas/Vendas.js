@@ -1,0 +1,203 @@
+import { useEffect, useState } from "react";
+import { Plus, Eye, X } from "lucide-react";
+import { buscarVendas, registrarVenda, obterVenda, buscarProdutos } from "../../services/api";
+import Notificacao from "../../components/Notificacao/Notificacao";
+import ModalNovaVenda from "../../components/ModalNovaVenda/ModalNovaVenda";
+import ModalDetalheVenda from "../../components/ModalDetalheVenda/ModalDetalheVenda";
+import "./Vendas.css";
+
+function formatarMoeda(valor) {
+  return Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function formatarData(data) {
+  return new Date(data).toLocaleString("pt-BR");
+}
+
+function Vendas() {
+  const [vendas, definirVendas] = useState([]);
+  const [carregando, definirCarregando] = useState(true);
+  const [erro, definirErro] = useState("");
+
+  const [modalNovaVendaAberto, definirModalNovaVendaAberto] = useState(false);
+  const [produtosParaVenda, definirProdutosParaVenda] = useState([]);
+  const [carregandoProdutos, definirCarregandoProdutos] = useState(false);
+  const [erroProdutos, definirErroProdutos] = useState("");
+  const [registrando, definirRegistrando] = useState(false);
+  const [erroRegistrar, definirErroRegistrar] = useState("");
+
+  const [vendaSelecionadaId, definirVendaSelecionadaId] = useState(null);
+  const [detalheVenda, definirDetalheVenda] = useState(null);
+  const [carregandoDetalhe, definirCarregandoDetalhe] = useState(false);
+  const [erroDetalhe, definirErroDetalhe] = useState("");
+
+  const [aviso, definirAviso] = useState({ visivel: false, mensagem: "", tipo: "sucesso" });
+
+  function mostrarAviso(mensagem, tipo = "sucesso") {
+    definirAviso({ visivel: true, mensagem, tipo });
+    setTimeout(() => fecharAviso(), 3000);
+  }
+
+  function fecharAviso() {
+    definirAviso((anterior) => ({ ...anterior, visivel: false }));
+  }
+
+  async function carregarVendas() {
+    definirCarregando(true);
+    definirErro("");
+    try {
+      const dados = await buscarVendas();
+      definirVendas(dados);
+    } catch (erroBusca) {
+      definirErro(erroBusca.message);
+    } finally {
+      definirCarregando(false);
+    }
+  }
+
+  useEffect(() => {
+    carregarVendas();
+  }, []);
+
+  async function abrirModalNovaVenda() {
+    definirModalNovaVendaAberto(true);
+    definirErroRegistrar("");
+    definirCarregandoProdutos(true);
+    definirErroProdutos("");
+    try {
+      const dados = await buscarProdutos({ status: "" });
+      definirProdutosParaVenda(dados);
+    } catch (erroBusca) {
+      definirErroProdutos(erroBusca.message);
+    } finally {
+      definirCarregandoProdutos(false);
+    }
+  }
+
+  async function confirmarNovaVenda(itens) {
+    definirRegistrando(true);
+    definirErroRegistrar("");
+    try {
+      await registrarVenda(itens);
+      definirModalNovaVendaAberto(false);
+      mostrarAviso("Venda registrada com sucesso.");
+      await carregarVendas();
+    } catch (erroRegistro) {
+      definirErroRegistrar(erroRegistro.message);
+    } finally {
+      definirRegistrando(false);
+    }
+  }
+
+  async function abrirDetalhe(venda) {
+    definirVendaSelecionadaId(venda.id);
+    definirDetalheVenda(null);
+    definirErroDetalhe("");
+    definirCarregandoDetalhe(true);
+    try {
+      const dados = await obterVenda(venda.id);
+      definirDetalheVenda(dados);
+    } catch (erroBusca) {
+      definirErroDetalhe(erroBusca.message);
+    } finally {
+      definirCarregandoDetalhe(false);
+    }
+  }
+
+  return (
+    <div>
+      <div className="cabecalho-pagina">
+        <div>
+          <h1 className="cabecalho-pagina__titulo">Gestão de Vendas</h1>
+          <p className="cabecalho-pagina__subtitulo">{vendas.length} vendas registradas</p>
+        </div>
+        <button onClick={abrirModalNovaVenda} className="botao botao--primario">
+          <Plus size={18} /> Nova Venda
+        </button>
+      </div>
+
+      {erro && <div className="mensagem-erro">{erro}</div>}
+
+      {carregando ? (
+        <div className="estado-carregando">Carregando vendas...</div>
+      ) : (
+        <div className="cartao">
+          <div className="tabela-wrapper">
+            <table className="tabela">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Valor Total</th>
+                  <th className="th--direita">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vendas.map((venda) => (
+                  <tr key={venda.id}>
+                    <td>{formatarData(venda.data)}</td>
+                    <td>{formatarMoeda(venda.valorTotal)}</td>
+                    <td>
+                      <div className="acoes-tabela">
+                        <button onClick={() => abrirDetalhe(venda)} className="acao-editar" title="Ver itens">
+                          <Eye size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {vendas.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="tabela__vazio">
+                      Nenhuma venda registrada ainda.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {modalNovaVendaAberto && carregandoProdutos && (
+        <div className="sobreposicao-modal">
+          <div className="modal modal--pequeno">
+            <div className="modal__cabecalho">
+              <h2 className="modal__titulo">Nova Venda</h2>
+              <button onClick={() => definirModalNovaVendaAberto(false)} className="modal__fechar">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal__corpo">
+              {erroProdutos && <div className="mensagem-erro">{erroProdutos}</div>}
+              <div className="estado-carregando">Carregando produtos disponíveis...</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalNovaVendaAberto && !carregandoProdutos && !erroProdutos && (
+        <ModalNovaVenda
+          produtos={produtosParaVenda}
+          enviando={registrando}
+          erroEnvio={erroRegistrar}
+          aoFechar={() => definirModalNovaVendaAberto(false)}
+          aoConfirmar={confirmarNovaVenda}
+        />
+      )}
+
+      {vendaSelecionadaId && (
+        <ModalDetalheVenda
+          venda={detalheVenda?.venda}
+          itens={detalheVenda?.itens || []}
+          carregando={carregandoDetalhe}
+          erro={erroDetalhe}
+          aoFechar={() => definirVendaSelecionadaId(null)}
+        />
+      )}
+
+      <Notificacao visivel={aviso.visivel} mensagem={aviso.mensagem} tipo={aviso.tipo} aoFechar={fecharAviso} />
+    </div>
+  );
+}
+
+export default Vendas;
