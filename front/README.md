@@ -1,10 +1,9 @@
 # BebidaExpress · Front-end
 
-Front-end do painel administrativo da **BebidaExpress**, conectado ao backend real
-(Node/Express + MongoDB, com **GraphQL** e **REST** expostos no mesmo servidor).
-Construído com Create React App e **CSS puro**, seguindo a mesma estrutura de pastas
-usada no projeto Nova Jornada Animal: cada componente/página em sua própria pasta,
-com um par `Nome.js` + `Nome.css`.
+Front-end do painel administrativo da **BebidaExpress**, conectado ao backend
+real (Node/Express + MongoDB). Construído com Create React App e **CSS puro**,
+seguindo a mesma estrutura de pastas usada no projeto Nova Jornada Animal:
+cada componente/página em sua própria pasta, com um par `Nome.js` + `Nome.css`.
 
 ## Estrutura
 
@@ -24,10 +23,10 @@ front/
     ├── data/
     │   └── constantes.js         # rótulos/selos de status de estoque
     ├── services/
-    │   └── api.js                # cliente único: fala com GraphQL e com REST
+    │   └── api.js                # cliente único: GraphQL + REST de reforço
     ├── routes/
     │   ├── AppRoutes.js
-    │   └── RotaProtegida.js      # valida o token via REST (/auth/me)
+    │   └── RotaProtegida.js      # valida o token (via GraphQL, com fallback REST)
     ├── components/
     │   ├── Login/
     │   ├── Layout/               # LayoutPainel: barra lateral + conteúdo
@@ -47,35 +46,27 @@ front/
         └── Vendas/
 ```
 
-## GraphQL principal, REST de complemento
+## GraphQL como via principal
 
-O schema GraphQL do backend não cobre 100% das operações (não tem `atualizar`
-nem `inativar` produto/categoria, não tem consulta de perfil, e o tipo `Venda`
-não expõe os itens vendidos). Por isso `services/api.js` usa **GraphQL sempre
-que o schema permite**, e cai para **REST** só onde é a única opção:
+**Toda** operação do front — login, listar/criar/editar/inativar produtos e
+categorias, listar estoque, listar/registrar vendas e ver os itens de uma
+venda — passa primeiro pelo GraphQL (`/graphql`). A API REST (`/api`) só entra
+como **rede de segurança**: se a chamada GraphQL falhar (rede instável, schema
+desatualizado no servidor, erro pontual), a função correspondente em
+`services/api.js` cai automaticamente para o endpoint REST equivalente,
+sem o usuário perceber.
 
-| Ação | Via | Motivo |
-|---|---|---|
-| Login | GraphQL (`mutation login`) | suportado |
-| Validar token ao carregar a página | **REST** (`GET /auth/me`) | GraphQL não tem consulta de perfil |
-| Listar produtos (ativos, com busca/categoria) | GraphQL (`query produtos`) + filtro no front | GraphQL não aceita argumentos de filtro |
-| Listar produtos inativos / todos | **REST** (`GET /produtos?status=`) | `query produtos` só devolve ativos |
-| Criar produto / categoria | GraphQL (`mutation criarProduto/criarCategoria`) | suportado |
-| Editar produto / categoria | **REST** (`PUT`) | não existe mutation de atualização |
-| Inativar produto / categoria | **REST** (`DELETE`) | não existe mutation de inativação |
-| Listar estoque | GraphQL (`query estoque`) | suportado |
-| Listar vendas / registrar venda | GraphQL (`query vendas` / `mutation registrarVenda`) | suportado |
-| Ver itens de uma venda | **REST** (`GET /vendas/:id`) | tipo `Venda` do GraphQL não tem `itens` |
-
-Cada modal mostra um selo (**via GraphQL** / **via REST**) indicando qual via foi
-usada naquela ação, só para deixar isso visível durante o desenvolvimento.
+Nenhuma página ou componente chama `fetch` diretamente — tudo passa por
+`services/api.js`, que também normaliza toda resposta (do GraphQL ou do REST)
+para sempre expor a chave `id`, já que o GraphQL usa `id` e o Mongoose usa
+`_id`.
 
 ## Como rodar (front + backend)
 
 ### 1. Backend
 
 ```bash
-cd Bebida-Express-main
+cd backend
 npm install
 cp .env.example .env    # preencha MONGO_URI, JWT_SECRET etc.
 npm run seed:admin       # cria o administrador inicial
@@ -103,7 +94,9 @@ npm run build
 
 - Ícones via [lucide-react](https://lucide.dev/). Navegação via
   [react-router-dom](https://reactrouter.com/).
-- `services/api.js` normaliza toda resposta (do GraphQL ou do REST) para sempre
-  expor a chave `id`, já que o GraphQL usa `id` e o Mongoose usa `_id`.
+- O campo "Imagem" do produto aceita uma URL — ela é salva e exibida como
+  miniatura na listagem e no card de estoque; não há upload de arquivo.
+- O aviso de "estoque baixo" é calculado pelo backend (campo `statusEstoque`);
+  o front só exibe o que a API já manda pronto.
 - Nomes de variáveis, funções, componentes e páginas estão em português,
   seguindo o mesmo padrão do projeto Nova Jornada Animal.

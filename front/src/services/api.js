@@ -1,15 +1,15 @@
 // Camada de acesso à API do backend Bebida Express.
 //
 // O backend expõe DUAS portas de entrada no mesmo servidor:
-//   - GraphQL em /graphql  → usada como via PRINCIPAL (listagens, criação,
-//     entrada e registro de venda).
-//   - REST em /api          → usada de COMPLEMENTO para o que o schema
-//     GraphQL não cobre: atualizar produto/categoria, inativar produto/
-//     categoria, conferir o token (/auth/me) e ver os itens de uma venda —
-//     e também como reforço quando alguma consulta GraphQL falha.
+//   - GraphQL em /graphql  → via PRINCIPAL de TODAS as operações abaixo.
+//   - REST em /api          → usada só como REFORÇO: se a chamada GraphQL
+//     falhar (schema desatualizado, erro de rede, bug pontual no resolver),
+//     a função cai automaticamente para o endpoint REST equivalente.
 //
-// Cada função exportada deixa explícito nos comentários por qual via ela
-// conversa com o servidor.
+// Isso exige que o schema GraphQL do backend tenha, além das consultas
+// originais, também: meuPerfil, atualizarProduto, inativarProduto,
+// atualizarCategoria, inativarCategoria, produtos(categoria, status, busca)
+// e o tipo Venda com os campos administrador/itens.
 
 const URL_BASE_API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 const URL_GRAPHQL = process.env.REACT_APP_GRAPHQL_URL || "http://localhost:5000/graphql";
@@ -34,7 +34,7 @@ function dispararEventoSessao() {
   window.dispatchEvent(new Event("administradorAtualizado"));
 }
 
-// ── REST ──────────────────────────────────────────────────────────────
+// ── REST (reforço) ───────────────────────────────────────────────────
 async function chamarApi(caminho, opcoes = {}) {
   let resposta;
   try {
@@ -57,7 +57,7 @@ async function chamarApi(caminho, opcoes = {}) {
   return dados;
 }
 
-// ── GraphQL ───────────────────────────────────────────────────────────
+// ── GraphQL (principal) ──────────────────────────────────────────────
 async function chamarGraphQL(consulta, variaveis) {
   let resposta;
   try {
@@ -81,8 +81,7 @@ async function chamarGraphQL(consulta, variaveis) {
 
 // Garante que todo produto/categoria/venda chegue às páginas sempre com
 // a chave "id" preenchida, tanto vindo do GraphQL (que já usa "id") quanto
-// do REST/Mongoose (que usa "_id") — assim o resto do front nunca precisa
-// se preocupar com qual via trouxe o dado.
+// do REST/Mongoose (que usa "_id").
 function normalizar(objeto) {
   if (!objeto) return objeto;
   return { ...objeto, id: objeto.id || objeto._id };
@@ -129,10 +128,15 @@ export function usuarioEstaLogado() {
   return !!pegarToken();
 }
 
-// REST: GraphQL não expõe consulta de perfil ("me"), então a validação do
-// token ao carregar a aplicação é feita direto na API REST.
-export function buscarMeuPerfil() {
-  return chamarApi("/auth/me");
+// GraphQL (principal): query meuPerfil. REST (reforço): GET /auth/me.
+export async function buscarMeuPerfil() {
+  const consulta = `query { meuPerfil { id nome email status } }`;
+  try {
+    const dados = await chamarGraphQL(consulta);
+    return dados.meuPerfil;
+  } catch (erroGraphQL) {
+    return chamarApi("/auth/me");
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -171,15 +175,41 @@ export async function criarCategoria(dadosCategoria) {
   return normalizar(dados.criarCategoria);
 }
 
-// REST: não existe mutation de atualização no schema GraphQL.
+// GraphQL (principal): mutation atualizarCategoria.
+// REST (reforço): PUT /categorias/:id.
 export async function atualizarCategoria(id, dadosCategoria) {
-  const dados = await chamarApi(`/categorias/${id}`, { metodo: "PUT", corpo: dadosCategoria });
-  return normalizar(dados);
+  const consulta = `
+    mutation AtualizarCategoria($id: ID!, $dados: CategoriaUpdateInput!) {
+      atualizarCategoria(id: $id, dados: $dados) {
+        id
+        nome
+        descricao
+        status
+      }
+    }
+  `;
+  try {
+    const dados = await chamarGraphQL(consulta, { id, dados: dadosCategoria });
+    return normalizar(dados.atualizarCategoria);
+  } catch (erroGraphQL) {
+    const dados = await chamarApi(`/categorias/${id}`, { metodo: "PUT", corpo: dadosCategoria });
+    return normalizar(dados);
+  }
 }
 
-// REST: não existe mutation de inativação no schema GraphQL.
+// GraphQL (principal): mutation inativarCategoria.
+// REST (reforço): DELETE /categorias/:id.
 export async function inativarCategoria(id) {
-  return chamarApi(`/categorias/${id}`, { metodo: "DELETE" });
+  const consulta = `
+    mutation InativarCategoria($id: ID!) {
+      inativarCategoria(id: $id) { id status }
+    }
+  `;
+  try {
+    return await chamarGraphQL(consulta, { id });
+  } catch (erroGraphQL) {
+    return chamarApi(`/categorias/${id}`, { metodo: "DELETE" });
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -196,21 +226,44 @@ const CAMPOS_PRODUTO = `
   estoqueMinimo
   statusEstoque
   status
+  imagem
   categoria {
     id
     nome
   }
 `;
 
-// GraphQL (principal) + REST (complemento).
-// A query "produtos" do schema GraphQL só devolve produtos ATIVOS e não
-// aceita filtros — então: busca/categoria são filtradas aqui no front após
-// a resposta do GraphQL, e o filtro "inativo"/"todos" (que o GraphQL não
-// tem como atender) cai para o REST, que já suporta esses filtros de fábrica.
+// GraphQL (principal): query produtos(categoria, status, busca) — já aceita
+// os mesmos filtros que a rota REST. REST (reforço): GET /produtos?....
 export async function buscarProdutos(filtros = {}) {
-  const precisaDeInativos = filtros.status === "inativo" || filtros.status === "todos";
+  const consulta = `
+    query Produtos($categoria: ID, $status: String, $busca: String) {
+      produtos(categoria: $categoria, status: $status, busca: $busca) { ${CAMPOS_PRODUTO} }
+    }
+  `;
 
-  if (precisaDeInativos) {
+  try {
+    const dados = await chamarGraphQL(consulta, {
+      categoria: filtros.categoria || null,
+      status: filtros.status === "todos" ? null : filtros.status || null,
+      busca: filtros.busca || null,
+    });
+    let produtos = dados.produtos.map(normalizar);
+
+    // A query GraphQL não tem um valor "todos os status" (ela sempre filtra
+    // por um status específico), então quando o front pede "todos", busca
+    // ativos e inativos separadamente e junta as duas listas.
+    if (filtros.status === "todos") {
+      const inativosConsulta = await chamarGraphQL(consulta, {
+        categoria: filtros.categoria || null,
+        status: "inativo",
+        busca: filtros.busca || null,
+      });
+      produtos = produtos.concat(inativosConsulta.produtos.map(normalizar));
+    }
+
+    return produtos;
+  } catch (erroGraphQL) {
     const parametros = new URLSearchParams();
     if (filtros.categoria) parametros.set("categoria", filtros.categoria);
     if (filtros.status && filtros.status !== "todos") parametros.set("status", filtros.status);
@@ -219,20 +272,6 @@ export async function buscarProdutos(filtros = {}) {
     const dados = await chamarApi(`/produtos${consultaRest ? `?${consultaRest}` : ""}`);
     return dados.map(normalizar);
   }
-
-  const consulta = `query { produtos { ${CAMPOS_PRODUTO} } }`;
-  const dados = await chamarGraphQL(consulta);
-  let produtos = dados.produtos.map(normalizar);
-
-  if (filtros.categoria) {
-    produtos = produtos.filter((produto) => produto.categoria?.id === filtros.categoria);
-  }
-  if (filtros.busca) {
-    const termo = filtros.busca.toLowerCase();
-    produtos = produtos.filter((produto) => produto.nome.toLowerCase().includes(termo));
-  }
-
-  return produtos;
 }
 
 // GraphQL: mutation criarProduto
@@ -246,23 +285,42 @@ export async function criarProduto(dadosProduto) {
   return normalizar(dados.criarProduto);
 }
 
-// REST: não existe mutation de atualização no schema GraphQL.
+// GraphQL (principal): mutation atualizarProduto.
+// REST (reforço): PUT /produtos/:id.
 export async function atualizarProduto(id, dadosProduto) {
-  const dados = await chamarApi(`/produtos/${id}`, { metodo: "PUT", corpo: dadosProduto });
-  return normalizar(dados);
+  const consulta = `
+    mutation AtualizarProduto($id: ID!, $dados: ProdutoUpdateInput!) {
+      atualizarProduto(id: $id, dados: $dados) { ${CAMPOS_PRODUTO} }
+    }
+  `;
+  try {
+    const dados = await chamarGraphQL(consulta, { id, dados: dadosProduto });
+    return normalizar(dados.atualizarProduto);
+  } catch (erroGraphQL) {
+    const dados = await chamarApi(`/produtos/${id}`, { metodo: "PUT", corpo: dadosProduto });
+    return normalizar(dados);
+  }
 }
 
-// REST: não existe mutation de inativação no schema GraphQL.
+// GraphQL (principal): mutation inativarProduto.
+// REST (reforço): DELETE /produtos/:id.
 export async function inativarProduto(id) {
-  return chamarApi(`/produtos/${id}`, { metodo: "DELETE" });
+  const consulta = `
+    mutation InativarProduto($id: ID!) {
+      inativarProduto(id: $id) { id status }
+    }
+  `;
+  try {
+    return await chamarGraphQL(consulta, { id });
+  } catch (erroGraphQL) {
+    return chamarApi(`/produtos/${id}`, { metodo: "DELETE" });
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════
 // Estoque
 // ════════════════════════════════════════════════════════════════════
 
-// Achata a resposta de estoque (GraphQL ou REST) para o mesmo formato
-// usado na página de Estoque.
 function achatarItemGraphQL(item) {
   return {
     id: item.produto.id,
@@ -287,11 +345,7 @@ function achatarItemRest(item) {
   };
 }
 
-// GraphQL (principal): query estoque — devolve { produto, quantidade, status }
-// por item. Se o GraphQL falhar (o resolver de estoque do backend não popula
-// a categoria de todo produto, o que pode gerar erro quando algum produto
-// está com a categoria mal configurada), cai para a API REST, que já trata
-// essa mesma situação com segurança.
+// GraphQL (principal): query estoque. REST (reforço): GET /estoque.
 export async function buscarEstoque() {
   const consulta = `
     query {
@@ -337,8 +391,7 @@ export async function registrarVenda(itens) {
   return normalizar(dados.registrarVenda);
 }
 
-// GraphQL: query vendas — o tipo Venda do schema não expõe o administrador
-// que registrou a venda nem os itens vendidos, só id/data/valorTotal.
+// GraphQL: query vendas
 export async function buscarVendas() {
   const consulta = `
     query {
@@ -353,9 +406,32 @@ export async function buscarVendas() {
   return dados.vendas.map(normalizar);
 }
 
-// REST: o tipo Venda do GraphQL não tem campo "itens", então o detalhe
-// (usado no modal de "ver itens") vem da API REST, que já devolve
-// { venda, itens } prontos.
-export function obterVenda(id) {
-  return chamarApi(`/vendas/${id}`);
+// GraphQL (principal): query venda(id), já com administrador e itens.
+// REST (reforço): GET /vendas/:id, que já devolve { venda, itens } prontos.
+export async function obterVenda(id) {
+  const consulta = `
+    query Venda($id: ID!) {
+      venda(id: $id) {
+        id
+        data
+        valorTotal
+        administrador { nome }
+        itens {
+          id
+          quantidade
+          precoUnitario
+          subtotal
+          produto { nome codigo }
+        }
+      }
+    }
+  `;
+
+  try {
+    const dados = await chamarGraphQL(consulta, { id });
+    const { itens, ...venda } = dados.venda;
+    return { venda, itens: itens.map(normalizar) };
+  } catch (erroGraphQL) {
+    return chamarApi(`/vendas/${id}`);
+  }
 }

@@ -39,7 +39,7 @@ function ModalDetalheVenda({ venda, itens, carregando, erro, aoFechar }) {
 
                 <div style={{ marginTop: "0.5rem" }}>
                   {itens.map((item) => (
-                    <div key={item._id} className="venda-detalhe__linha">
+                    <div key={item.id || item._id} className="venda-detalhe__linha">
                       <span>
                         {item.quantidade}x {item.produto?.nome || "Produto removido"}
                       </span>
