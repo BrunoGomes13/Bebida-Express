@@ -88,15 +88,3 @@ Faça login com o e-mail/senha do `.env` do backend (`ADMIN_EMAIL` / `ADMIN_SENH
 
 ```bash
 npm run build
-```
-
-## Observações
-
-- Ícones via [lucide-react](https://lucide.dev/). Navegação via
-  [react-router-dom](https://reactrouter.com/).
-- O campo "Imagem" do produto aceita uma URL — ela é salva e exibida como
-  miniatura na listagem e no card de estoque; não há upload de arquivo.
-- O aviso de "estoque baixo" é calculado pelo backend (campo `statusEstoque`);
-  o front só exibe o que a API já manda pronto.
-- Nomes de variáveis, funções, componentes e páginas estão em português,
-  seguindo o mesmo padrão do projeto Nova Jornada Animal.
