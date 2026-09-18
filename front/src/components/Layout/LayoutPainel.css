@@ -1,0 +1,3 @@
+/* O grosso do layout (.aplicativo, .conteudo-principal, .area-principal)
+   já está em src/index.css, pois é compartilhado com outras telas.
+   Este arquivo fica reservado para ajustes específicos do LayoutPainel. */

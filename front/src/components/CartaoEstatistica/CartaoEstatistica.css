@@ -1,0 +1,33 @@
+.cartao-estatistica {
+  background: #fff;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cartao-estatistica__icone {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--raio-pequeno);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cartao-estatistica__valor {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--cor-texto-forte);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.cartao-estatistica__rotulo {
+  color: var(--cor-texto-suave);
+  font-size: 0.75rem;
+  margin: 0;
+}

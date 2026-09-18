@@ -1,0 +1,37 @@
+.linha-item-venda {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.linha-item-venda__produto {
+  flex: 1;
+  min-width: 0;
+}
+
+.linha-item-venda__quantidade {
+  width: 5.5rem;
+}
+
+.linha-item-venda__subtotal {
+  width: 5.5rem;
+  text-align: right;
+  font-size: 0.875rem;
+  color: var(--cor-texto);
+  padding-bottom: 0.625rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+.resumo-venda {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--cor-borda-clara);
+  border-radius: var(--raio-pequeno);
+  font-weight: 600;
+  color: var(--cor-texto-forte);
+}

@@ -1,0 +1,35 @@
+.notificacao {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--raio-pequeno);
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  max-width: calc(100vw - 2rem);
+}
+
+.notificacao--sucesso {
+  background: #059669;
+  color: #fff;
+}
+
+.notificacao--erro {
+  background: #dc2626;
+  color: #fff;
+}
+
+.notificacao__fechar {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}

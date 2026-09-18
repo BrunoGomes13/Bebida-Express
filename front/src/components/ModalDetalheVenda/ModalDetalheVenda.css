@@ -1,0 +1,24 @@
+.venda-detalhe__linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--cor-borda-clara);
+  font-size: 0.875rem;
+}
+
+.venda-detalhe__linha:last-child {
+  border-bottom: none;
+}
+
+.resumo-venda {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--cor-borda-clara);
+  border-radius: var(--raio-pequeno);
+  font-weight: 600;
+  color: var(--cor-texto-forte);
+  margin-top: 0.5rem;
+}

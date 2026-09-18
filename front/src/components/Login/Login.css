@@ -1,0 +1,59 @@
+.tela-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-sidebar);
+  padding: 1rem;
+}
+
+.cartao-login {
+  background: #fff;
+  border-radius: var(--raio);
+  width: 100%;
+  max-width: 24rem;
+  padding: 2rem;
+}
+
+.cartao-login__cabecalho {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.cartao-login__logo {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-primaria);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cartao-login__logo-img {
+  width: 24px;
+  height: 24px;
+}
+
+.cartao-login__titulo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--cor-texto-forte);
+  margin: 0;
+}
+
+.cartao-login__subtitulo {
+  color: var(--cor-texto-suave);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.cartao-login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
