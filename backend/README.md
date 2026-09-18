@@ -44,8 +44,7 @@ backend/
 │   ├── Categoria.js                # Schema de Categoria
 │   ├── Produto.js                  # Schema de Produto (com status de estoque calculado)
 │   ├── Venda.js                    # Schema de Venda
-│   ├── ItemVenda.js                # Schema dos itens de cada venda
-│   └── Movimentacao.js             # Registro interno de cada entrada/saída de estoque
+│   └── ItemVenda.js                # Schema dos itens de cada venda
 ├── routes/
 │   ├── authRoutes.js               # Rotas /api/auth
 │   ├── categoriaRoutes.js          # Rotas /api/categorias
@@ -192,30 +191,6 @@ MongoDB Atlas (NoSQL), gerenciado via Mongoose.
 | quantidade | Number | ✅ | Quantidade vendida |
 | precoUnitario | Number | ✅ | Preço unitário no momento da venda |
 | subtotal | Number | ✅ | quantidade × precoUnitario |
-
-### Coleção `movimentacaos`
-
-Registro interno de auditoria: toda vez que uma venda é registrada, uma
-movimentação de saída é gravada automaticamente por `services/vendaService.js`
-para cada produto vendido — guarda o estoque antes/depois, a quantidade e quem
-fez a venda.
-
-> ⚠️ **Ainda não tem endpoint próprio.** Os registros são gravados, mas não
-> existe hoje uma rota REST nem uma query GraphQL para listá-los — é só um
-> histórico interno no banco por enquanto. Se quiser consultar essas
-> movimentações pelo painel, é preciso criar essa rota/resolver (é simples:
-> só um `Movimentacao.find().populate(...)`, no mesmo padrão dos outros
-> controllers).
-
-| Campo | Tipo | Obrigatório | Descrição |
-|---|---|---|---|
-| produto | ObjectId (ref: Produto) | ✅ | Produto que teve o estoque alterado |
-| venda | ObjectId (ref: Venda) | ❌ | Venda que originou a movimentação |
-| tipo | String (enum) | ✅ | "entrada" \| "saida" |
-| quantidade | Number | ✅ | Quantidade movimentada |
-| estoqueAnterior | Number | ✅ | Estoque antes da movimentação |
-| estoquePosterior | Number | ✅ | Estoque depois da movimentação |
-| administrador | ObjectId (ref: Administrador) | ✅ | Responsável pela movimentação |
 
 ## ▶️ Como rodar
 

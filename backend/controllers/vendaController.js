@@ -3,7 +3,6 @@ const ItemVenda = require('../models/ItemVenda');
 const vendaService = require('../services/vendaService');
 
 // POST /api/vendas
-// Corpo esperado: { "itens": [{ "produtoId": "...", "quantidade": 2 }, ...] }
 const registrarVenda = async (req, res) => {
   try {
     const venda = await vendaService.registrarVenda(req.body.itens, req.administrador._id);

@@ -36,7 +36,6 @@ const login = async (req, res) => {
 // GET /api/auth/me
 // Retorna os dados do administrador dono do token enviado no header Authorization.
 // Serve para confirmar, na hora de testar, que o token realmente corresponde
-// ao administrador esperado (o authMiddleware já validou o token antes de chegar aqui).
 const meuPerfil = async (req, res) => {
   res.json({
     id: req.administrador._id,
