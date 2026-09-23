@@ -39,7 +39,7 @@ function BarraLateral({ barraLateralAberta, definirBarraLateralAberta }) {
             <img src={logo} alt="" className="barra-lateral__logo-img" />
           </div>
           <div>
-            <p className="barra-lateral__marca-titulo">Admin Panel</p>
+            <p className="barra-lateral__marca-titulo">Admin Painel</p>
             <p className="barra-lateral__marca-subtitulo">BebidaExpress</p>
           </div>
           <button className="barra-lateral__fechar" onClick={() => definirBarraLateralAberta(false)}>
