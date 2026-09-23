@@ -377,17 +377,21 @@ export async function buscarEstoque() {
 // ════════════════════════════════════════════════════════════════════
 
 // GraphQL: mutation registrarVenda
-export async function registrarVenda(itens) {
+export async function registrarVenda({ itens, nomeComprador, cpfComprador }) {
   const consulta = `
-    mutation RegistrarVenda($itens: [ItemVendaInput!]!) {
-      registrarVenda(itens: $itens) {
+    mutation RegistrarVenda($itens: [ItemVendaInput!]!, $nomeComprador: String!, $cpfComprador: String) {
+      registrarVenda(itens: $itens, nomeComprador: $nomeComprador, cpfComprador: $cpfComprador) {
         id
         data
+        nomeComprador
+        cpfComprador
+        valorBruto
+        desconto
         valorTotal
       }
     }
   `;
-  const dados = await chamarGraphQL(consulta, { itens });
+  const dados = await chamarGraphQL(consulta, { itens, nomeComprador, cpfComprador: cpfComprador || null });
   return normalizar(dados.registrarVenda);
 }
 
@@ -398,6 +402,9 @@ export async function buscarVendas() {
       vendas {
         id
         data
+        nomeComprador
+        valorBruto
+        desconto
         valorTotal
       }
     }
@@ -414,6 +421,10 @@ export async function obterVenda(id) {
       venda(id: $id) {
         id
         data
+        nomeComprador
+        cpfComprador
+        valorBruto
+        desconto
         valorTotal
         administrador { nome }
         itens {

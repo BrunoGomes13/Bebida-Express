@@ -77,7 +77,7 @@ const resolvers = {
   },
 
   Mutation: {
-    registrarVenda: async (_, { itens }, contexto) => {
+    registrarVenda: async (_, { itens, nomeComprador, cpfComprador }, contexto) => {
       if (!contexto.administrador) {
         throw new Error('Não autorizado. Faça login para registrar uma venda.');
       }
@@ -87,7 +87,10 @@ const resolvers = {
         quantidade: item.quantidade,
       }));
 
-      return vendaService.registrarVenda(itensFormatados, contexto.administrador._id);
+      return vendaService.registrarVenda(
+        { itens: itensFormatados, nomeComprador, cpfComprador },
+        contexto.administrador._id
+      );
     },
 
     criarProduto: async (_, { dados }, contexto) => {

@@ -131,7 +131,7 @@ API REST cobre, incluindo edição e inativação. Exige `Authorization: Bearer
 | Mutation | `criarCategoria(dados)` | Cadastra uma categoria |
 | Mutation | `atualizarCategoria(id, dados)` | Atualiza uma categoria |
 | Mutation | `inativarCategoria(id)` | Inativa uma categoria |
-| Mutation | `registrarVenda(itens)` | Registra uma venda com baixa automática |
+| Mutation | `registrarVenda(itens, nomeComprador, cpfComprador)` | Registra uma venda com baixa automática |
 
 ## 🗄️ Modelagem do Banco de Dados
 
@@ -179,8 +179,20 @@ MongoDB Atlas (NoSQL), gerenciado via Mongoose.
 | Campo | Tipo | Obrigatório | Descrição |
 |---|---|---|---|
 | data | Date | ❌ | Data da venda (padrão: agora) |
-| valorTotal | Number | ✅ | Valor total calculado da venda |
+| nomeComprador | String | ✅ | Nome de quem comprou |
+| cpfComprador | String | ❌ | CPF do comprador (só é enviado quando ele quer o desconto) |
+| valorBruto | Number | ✅ | Soma dos subtotais, antes do desconto |
+| desconto | Number | ✅ | Valor do desconto aplicado (padrão: 0) |
+| valorTotal | Number | ✅ | valorBruto − desconto |
 | administrador | ObjectId (ref: Administrador) | ✅ | Quem registrou a venda |
+
+> **Regra do desconto:** se `valorBruto >= R$ 600,00` **e** o comprador informar
+> um CPF válido (só o formato — 11 dígitos, sem checar dígito verificador),
+> é aplicado automaticamente **10% de desconto** sobre o valor
+> bruto. Sem CPF, mesmo acima de R$ 600, a venda segue pelo valor cheio. O CPF
+> é validado (dígitos verificadores) tanto no front quanto no
+> `services/vendaService.js` — é lá que fica a regra de negócio de verdade,
+> os dois pontos de entrada (REST e GraphQL) só repassam pra ela.
 
 ### Coleção `itemvendas`
 

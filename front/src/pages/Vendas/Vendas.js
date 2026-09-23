@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Plus, Eye, X } from "lucide-react";
+import { Plus, Eye, X, CalendarDays, Percent } from "lucide-react";
 import { buscarVendas, registrarVenda, obterVenda, buscarProdutos } from "../../services/api";
 import Notificacao from "../../components/Notificacao/Notificacao";
+import CartaoEstatistica from "../../components/CartaoEstatistica/CartaoEstatistica";
 import ModalNovaVenda from "../../components/ModalNovaVenda/ModalNovaVenda";
 import ModalDetalheVenda from "../../components/ModalDetalheVenda/ModalDetalheVenda";
 import "./Vendas.css";
@@ -74,11 +75,11 @@ function Vendas() {
     }
   }
 
-  async function confirmarNovaVenda(itens) {
+  async function confirmarNovaVenda(dadosVenda) {
     definirRegistrando(true);
     definirErroRegistrar("");
     try {
-      await registrarVenda(itens);
+      await registrarVenda(dadosVenda);
       definirModalNovaVendaAberto(false);
       mostrarAviso("Venda registrada com sucesso.");
       await carregarVendas();
@@ -104,6 +105,15 @@ function Vendas() {
     }
   }
 
+  const agora = new Date();
+  const vendasDoMes = vendas.filter((venda) => {
+    const dataVenda = new Date(venda.data);
+    return dataVenda.getMonth() === agora.getMonth() && dataVenda.getFullYear() === agora.getFullYear();
+  });
+  const totalVendidoNoMes = vendasDoMes.reduce((soma, venda) => soma + venda.valorTotal, 0);
+  const totalDescontoNoMes = vendasDoMes.reduce((soma, venda) => soma + (venda.desconto || 0), 0);
+  const nomeMesAtual = agora.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+
   return (
     <div>
       <div className="cabecalho-pagina">
@@ -118,6 +128,23 @@ function Vendas() {
 
       {erro && <div className="mensagem-erro">{erro}</div>}
 
+      <div className="grade-estatisticas grade-estatisticas--2">
+        <CartaoEstatistica
+          icone={CalendarDays}
+          corFundoIcone="#ecfdf5"
+          corIcone="#10b981"
+          valor={formatarMoeda(totalVendidoNoMes)}
+          rotulo={`Vendido em ${nomeMesAtual} (${vendasDoMes.length} ${vendasDoMes.length === 1 ? "venda" : "vendas"})`}
+        />
+        <CartaoEstatistica
+          icone={Percent}
+          corFundoIcone="#fdf4ff"
+          corIcone="#a855f7"
+          valor={formatarMoeda(totalDescontoNoMes)}
+          rotulo={`Desconto concedido em ${nomeMesAtual}`}
+        />
+      </div>
+
       {carregando ? (
         <div className="estado-carregando">Carregando vendas...</div>
       ) : (
@@ -127,7 +154,9 @@ function Vendas() {
               <thead>
                 <tr>
                   <th>Data</th>
+                  <th>Comprador</th>
                   <th>Valor Total</th>
+                  <th>Desconto</th>
                   <th className="th--direita">Ações</th>
                 </tr>
               </thead>
@@ -135,7 +164,15 @@ function Vendas() {
                 {vendas.map((venda) => (
                   <tr key={venda.id}>
                     <td>{formatarData(venda.data)}</td>
+                    <td>{venda.nomeComprador || "—"}</td>
                     <td>{formatarMoeda(venda.valorTotal)}</td>
+                    <td>
+                      {venda.desconto > 0 ? (
+                        <span className="selo selo--ok">{formatarMoeda(venda.desconto)}</span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                     <td>
                       <div className="acoes-tabela">
                         <button onClick={() => abrirDetalhe(venda)} className="acao-editar" title="Ver itens">
@@ -147,7 +184,7 @@ function Vendas() {
                 ))}
                 {vendas.length === 0 && (
                   <tr>
-                    <td colSpan={3} className="tabela__vazio">
+                    <td colSpan={5} className="tabela__vazio">
                       Nenhuma venda registrada ainda.
                     </td>
                   </tr>

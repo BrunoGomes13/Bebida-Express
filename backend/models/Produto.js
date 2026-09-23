@@ -14,6 +14,16 @@ const produtoSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Campo virtual: calcula "normal" / "estoque_baixo" / "esgotado" sem
+// precisar guardar esse valor no banco (evita ficar desatualizado).
+//
+// Além do limite configurado em "estoqueMinimo", existe uma margem de
+// segurança fixa (MARGEM_SEGURANCA): mesmo que um produto tenha sido
+// cadastrado com estoqueMinimo igual a 0, ele ainda é avisado como
+// "estoque_baixo" assim que sobrarem poucas unidades — sem isso, um
+// produto pularia direto de "normal" para "esgotado" sem nunca passar
+// por um aviso de estoque baixo.
 const MARGEM_SEGURANCA = 2;
 
 produtoSchema.virtual('statusEstoque').get(function () {

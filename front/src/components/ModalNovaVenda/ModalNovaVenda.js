@@ -2,6 +2,10 @@ import { useState } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import "./ModalNovaVenda.css";
 
+// Regras da promoção — precisam bater com backend/services/vendaService.js
+const VALOR_MINIMO_DESCONTO = 600;
+const PERCENTUAL_DESCONTO = 0.1; // 10%
+
 function linhaVazia() {
   return { produtoId: "", quantidade: 1 };
 }
@@ -10,8 +14,26 @@ function formatarMoeda(valor) {
   return Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+// Máscara automática: vai formatando "000.000.000-00" enquanto digita.
+function formatarCpfDigitado(valor) {
+  const numeros = valor.replace(/\D/g, "").slice(0, 11);
+  return numeros
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+}
+
+// Validação de CPF: só checa o formato (11 dígitos, não repetidos) — mesma
+// regra do backend, sem exigir dígito verificador real.
+function cpfValido(cpf) {
+  const numeros = (cpf || "").replace(/\D/g, "");
+  return numeros.length === 11 && !/^(\d)\1{10}$/.test(numeros);
+}
+
 function ModalNovaVenda({ produtos, enviando, erroEnvio, aoFechar, aoConfirmar }) {
   const [itens, definirItens] = useState([linhaVazia()]);
+  const [nomeComprador, definirNomeComprador] = useState("");
+  const [cpfComprador, definirCpfComprador] = useState("");
   const [erroLocal, definirErroLocal] = useState("");
 
   function atualizarLinha(indice, campo, valor) {
@@ -30,15 +52,29 @@ function ModalNovaVenda({ produtos, enviando, erroEnvio, aoFechar, aoConfirmar }
     return produtos.find((p) => p.id === produtoId);
   }
 
-  const total = itens.reduce((soma, item) => {
+  function aoDigitarCpf(e) {
+    definirCpfComprador(formatarCpfDigitado(e.target.value));
+  }
+
+  const valorBruto = itens.reduce((soma, item) => {
     const produto = produtoDaLinha(item.produtoId);
     const quantidade = Number(item.quantidade) || 0;
     return soma + (produto ? produto.preco * quantidade : 0);
   }, 0);
 
+  const elegivelAoDesconto = valorBruto >= VALOR_MINIMO_DESCONTO;
+  const valorComDesconto = valorBruto * (1 - PERCENTUAL_DESCONTO);
+  const cpfPreenchidoEValido = elegivelAoDesconto && cpfValido(cpfComprador);
+  const totalFinal = cpfPreenchidoEValido ? valorComDesconto : valorBruto;
+
   function aoEnviar(e) {
     e.preventDefault();
     definirErroLocal("");
+
+    if (!nomeComprador.trim()) {
+      definirErroLocal("Informe o nome do comprador.");
+      return;
+    }
 
     const itensValidos = itens.filter((item) => item.produtoId && Number(item.quantidade) > 0);
 
@@ -55,7 +91,16 @@ function ModalNovaVenda({ produtos, enviando, erroEnvio, aoFechar, aoConfirmar }
       }
     }
 
-    aoConfirmar(itensValidos.map((item) => ({ produtoId: item.produtoId, quantidade: Number(item.quantidade) })));
+    if (elegivelAoDesconto && cpfComprador.trim() && !cpfValido(cpfComprador)) {
+      definirErroLocal("CPF do comprador inválido. Informe os 11 dígitos.");
+      return;
+    }
+
+    aoConfirmar({
+      itens: itensValidos.map((item) => ({ produtoId: item.produtoId, quantidade: Number(item.quantidade) })),
+      nomeComprador: nomeComprador.trim(),
+      cpfComprador: cpfComprador.trim() ? cpfComprador.trim() : undefined,
+    });
   }
 
   return (
@@ -70,6 +115,33 @@ function ModalNovaVenda({ produtos, enviando, erroEnvio, aoFechar, aoConfirmar }
 
         <form onSubmit={aoEnviar} className="modal__corpo">
           {(erroEnvio || erroLocal) && <div className="mensagem-erro">{erroEnvio || erroLocal}</div>}
+
+          <div className="grade-campos grade-campos--2">
+            <div className="campo">
+              <label className="campo__rotulo">
+                Nome do Comprador <span className="campo__obrigatorio">*</span>
+              </label>
+              <input
+                value={nomeComprador}
+                onChange={(e) => definirNomeComprador(e.target.value)}
+                className="entrada"
+                placeholder="Ex: Maria Silva"
+              />
+            </div>
+
+            {elegivelAoDesconto && (
+              <div className="campo">
+                <label className="campo__rotulo">CPF do Comprador (opcional)</label>
+                <input
+                  value={cpfComprador}
+                  onChange={aoDigitarCpf}
+                  className="entrada"
+                  placeholder="000.000.000-00"
+                  inputMode="numeric"
+                />
+              </div>
+            )}
+          </div>
 
           {itens.map((item, indice) => {
             const produto = produtoDaLinha(item.produtoId);
@@ -120,9 +192,22 @@ function ModalNovaVenda({ produtos, enviando, erroEnvio, aoFechar, aoConfirmar }
             <Plus size={14} /> Adicionar item
           </button>
 
+          {elegivelAoDesconto ? (
+            <div className="comparativo-desconto">
+              <div className={`comparativo-desconto__opcao ${!cpfPreenchidoEValido ? "comparativo-desconto__opcao--ativa" : ""}`}>
+                <span className="comparativo-desconto__rotulo">Sem CPF</span>
+                <span className="comparativo-desconto__valor">{formatarMoeda(valorBruto)}</span>
+              </div>
+              <div className={`comparativo-desconto__opcao comparativo-desconto__opcao--desconto ${cpfPreenchidoEValido ? "comparativo-desconto__opcao--ativa" : ""}`}>
+                <span className="comparativo-desconto__rotulo">Com CPF (10% off)</span>
+                <span className="comparativo-desconto__valor">{formatarMoeda(valorComDesconto)}</span>
+              </div>
+            </div>
+          ) : null}
+
           <div className="resumo-venda">
             <span>Total da venda</span>
-            <span>{formatarMoeda(total)}</span>
+            <span>{formatarMoeda(totalFinal)}</span>
           </div>
 
           <div className="modal__rodape">

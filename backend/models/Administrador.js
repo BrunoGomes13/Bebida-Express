@@ -8,7 +8,7 @@ const administradorSchema = new mongoose.Schema(
     senha: { type: String, required: true },
     status: { type: String, enum: ['ativo', 'inativo'], default: 'ativo' },
   },
-  { timestamps: true } 
+  { timestamps: true } // cria createdAt/updatedAt automaticamente
 );
 
 // Antes de salvar, criptografa a senha (só roda se a senha foi criada/alterada)
