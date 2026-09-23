@@ -10,6 +10,10 @@ async function connectDB() {
     console.log('Conectado ao MongoDB!');
   } catch (err) {
     console.error('Erro ao conectar ao MongoDB:', err.message);
+    // se quiser ver o erro completo, com todos os detalhes:
+    // const util = require('util');
+    // console.error(util.inspect(err, { depth: null }));
+
     process.exit(1);
   }
 }

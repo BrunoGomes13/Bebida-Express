@@ -22,10 +22,13 @@ O sistema permite que o administrador:
 
 - Cadastre **produtos** e **categorias**, controlando preço, quantidade em
   estoque e estoque mínimo.
-- Registre **vendas** selecionando vários produtos e quantidades de uma vez.
+- Registre **vendas** selecionando vários produtos e quantidades de uma vez,
+  com nome do comprador — e CPF opcional para compras apartir de R$ 600,00
+  ganharem **10% de desconto**.
 - Receba a **baixa automática no estoque** assim que a venda é confirmada —
   sem precisar atualizar manualmente.
-- Consulte o **histórico de vendas**, com o detalhe dos itens de cada uma.
+- Consulte o **histórico de vendas**, com o detalhe dos itens de cada uma, e
+  o **total vendido no mês** atual.
 - Identifique produtos com **estoque baixo** ou **esgotado**.
 
 A regra central do sistema: toda vez que uma venda é registrada, os produtos

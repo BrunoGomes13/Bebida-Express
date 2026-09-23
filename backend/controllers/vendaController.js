@@ -3,9 +3,13 @@ const ItemVenda = require('../models/ItemVenda');
 const vendaService = require('../services/vendaService');
 
 // POST /api/vendas
+// Corpo esperado: { "itens": [{ "produtoId": "...", "quantidade": 2 }, ...] }
 const registrarVenda = async (req, res) => {
   try {
-    const venda = await vendaService.registrarVenda(req.body.itens, req.administrador._id);
+    const venda = await vendaService.registrarVenda(
+      { itens: req.body.itens, nomeComprador: req.body.nomeComprador, cpfComprador: req.body.cpfComprador },
+      req.administrador._id
+    );
     res.status(201).json(venda);
   } catch (erro) {
     res.status(400).json({ mensagem: erro.message });

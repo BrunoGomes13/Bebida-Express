@@ -33,6 +33,16 @@ function ModalDetalheVenda({ venda, itens, carregando, erro, aoFechar }) {
                   <span>{formatarData(venda.data)}</span>
                 </div>
                 <div className="venda-detalhe__linha">
+                  <span>Comprador</span>
+                  <span>{venda.nomeComprador || "—"}</span>
+                </div>
+                {venda.cpfComprador && (
+                  <div className="venda-detalhe__linha">
+                    <span>CPF</span>
+                    <span>{venda.cpfComprador}</span>
+                  </div>
+                )}
+                <div className="venda-detalhe__linha">
                   <span>Registrada por</span>
                   <span>{venda.administrador?.nome || "—"}</span>
                 </div>
@@ -48,10 +58,27 @@ function ModalDetalheVenda({ venda, itens, carregando, erro, aoFechar }) {
                   ))}
                 </div>
 
-                <div className="resumo-venda">
-                  <span>Total</span>
-                  <span>{formatarMoeda(venda.valorTotal)}</span>
-                </div>
+                {venda.desconto > 0 ? (
+                  <div className="resumo-venda resumo-venda--detalhado">
+                    <div className="resumo-venda__linha">
+                      <span>Valor bruto</span>
+                      <span>{formatarMoeda(venda.valorBruto)}</span>
+                    </div>
+                    <div className="resumo-venda__linha resumo-venda__linha--desconto">
+                      <span>Desconto</span>
+                      <span>- {formatarMoeda(venda.desconto)}</span>
+                    </div>
+                    <div className="resumo-venda__linha resumo-venda__linha--total">
+                      <span>Total</span>
+                      <span>{formatarMoeda(venda.valorTotal)}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="resumo-venda">
+                    <span>Total</span>
+                    <span>{formatarMoeda(venda.valorTotal)}</span>
+                  </div>
+                )}
               </>
             )
           )}

@@ -46,6 +46,10 @@ const typeDefs = `#graphql
   type Venda {
     id: ID!
     data: String!
+    nomeComprador: String
+    cpfComprador: String
+    valorBruto: Float
+    desconto: Float
     valorTotal: Float!
     administrador: Administrador
     itens: [ItemVenda!]!
@@ -109,7 +113,7 @@ const typeDefs = `#graphql
   }
 
   type Mutation {
-    registrarVenda(itens: [ItemVendaInput!]!): Venda!
+    registrarVenda(itens: [ItemVendaInput!]!, nomeComprador: String!, cpfComprador: String): Venda!
     criarProduto(dados: ProdutoInput!): Produto!
     atualizarProduto(id: ID!, dados: ProdutoUpdateInput!): Produto!
     inativarProduto(id: ID!): Produto!

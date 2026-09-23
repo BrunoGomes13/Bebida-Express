@@ -35,3 +35,44 @@
   font-weight: 600;
   color: var(--cor-texto-forte);
 }
+
+.comparativo-desconto {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.comparativo-desconto__opcao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--raio-pequeno);
+  border: 1px solid var(--cor-borda);
+  background: #fff;
+  opacity: 0.6;
+}
+
+.comparativo-desconto__opcao--ativa {
+  opacity: 1;
+  border-color: var(--cor-primaria);
+  box-shadow: 0 0 0 1px var(--cor-primaria);
+}
+
+.comparativo-desconto__opcao--desconto.comparativo-desconto__opcao--ativa {
+  border-color: #059669;
+  box-shadow: 0 0 0 1px #059669;
+  background: #ecfdf5;
+}
+
+.comparativo-desconto__rotulo {
+  font-size: 0.75rem;
+  color: var(--cor-texto-suave);
+  font-weight: 500;
+}
+
+.comparativo-desconto__valor {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--cor-texto-forte);
+}
