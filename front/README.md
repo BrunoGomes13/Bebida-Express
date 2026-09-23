@@ -1,9 +1,7 @@
 # BebidaExpress · Front-end
 
 Front-end do painel administrativo da **BebidaExpress**, conectado ao backend
-real (Node/Express + MongoDB). Construído com Create React App e **CSS puro**,
-seguindo a mesma estrutura de pastas usada no projeto Nova Jornada Animal:
-cada componente/página em sua própria pasta, com um par `Nome.js` + `Nome.css`.
+real (Node/Express + MongoDB). Construído com Create React App e **CSS puro**.
 
 ## Estrutura
 
@@ -55,11 +53,6 @@ como **rede de segurança**: se a chamada GraphQL falhar (rede instável, schema
 desatualizado no servidor, erro pontual), a função correspondente em
 `services/api.js` cai automaticamente para o endpoint REST equivalente,
 sem o usuário perceber.
-
-Nenhuma página ou componente chama `fetch` diretamente — tudo passa por
-`services/api.js`, que também normaliza toda resposta (do GraphQL ou do REST)
-para sempre expor a chave `id`, já que o GraphQL usa `id` e o Mongoose usa
-`_id`.
 
 ## Como rodar (front + backend)
 
